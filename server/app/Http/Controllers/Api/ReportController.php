@@ -56,14 +56,14 @@ class ReportController extends Controller
             ->pluck('patient_id');
 
         $patientsByGender = Patient::query()
-            ->whereIn('id', $servedPatientIds)
+            ->whereIn('patients.id', $servedPatientIds)
             ->join('genders', 'patients.gender_id', '=', 'genders.id')
             ->select('genders.name', DB::raw('count(*) as total'))
             ->groupBy('genders.name')
             ->pluck('total', 'name');
 
         $patientsByBarangay = Patient::query()
-            ->whereIn('id', $servedPatientIds)
+            ->whereIn('patients.id', $servedPatientIds)
             ->whereNotNull('barangay')
             ->select('barangay', DB::raw('count(*) as total'))
             ->groupBy('barangay')

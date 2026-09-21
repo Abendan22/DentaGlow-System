@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/appointments/available-slots', [AppointmentController::class, 'availableSlots']);
     Route::get('/appointments/my', [AppointmentController::class, 'myAppointments']);
     Route::post('/appointments/book', [AppointmentController::class, 'store']);
+    Route::post('/appointments/my/{appointment}/cancel', [AppointmentController::class, 'cancelMine']);
 
     Route::middleware('clinic')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);

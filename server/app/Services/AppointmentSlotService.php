@@ -39,17 +39,22 @@ class AppointmentSlotService
         return array_values(array_diff(self::allSlots(), $booked));
     }
 
-    public static function isSlotAvailable(int $doctorId, string $date, string $timeSlot): bool
+    public static function isSlotAvailable(int $doctorId, string $date, string $timeSlot, ?int $ignoreAppointmentId = null): bool
     {
         if (! in_array($timeSlot, self::allSlots(), true)) {
             return false;
         }
 
-        return ! Appointment::query()
+        $query = Appointment::query()
             ->where('doctor_id', $doctorId)
             ->where('appointment_date', $date)
             ->where('time_slot', $timeSlot)
-            ->active()
-            ->exists();
+            ->active();
+
+        if ($ignoreAppointmentId) {
+            $query->where('id', '!=', $ignoreAppointmentId);
+        }
+
+        return ! $query->exists();
     }
 }

@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
+use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Support\TapazBarangays;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules\Password;
 
 class PatientController extends Controller
 {
@@ -41,17 +43,41 @@ class PatientController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'birth_date' => ['required', 'date', 'before:today'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'email' => ['nullable', 'email'],
+            'email' => ['nullable', 'email', 'unique:users,email'],
             'barangay' => ['required', 'string', TapazBarangays::rule()],
             'address' => ['nullable', 'string', 'max:255'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
+            'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
+
+        if (! empty($validated['password']) && empty($validated['email'])) {
+            return response()->json([
+                'message' => 'Email is required when creating a portal account.',
+                'errors' => ['email' => ['Email is required when creating a portal account.']],
+            ], 422);
+        }
 
         if ($request->hasFile('photo')) {
             $validated['photo'] = $request->file('photo')->store('patients', 'public');
         }
 
-        $patient = Patient::create($validated);
+        $password = $validated['password'] ?? null;
+        unset($validated['password'], $validated['password_confirmation']);
+
+        $patient = DB::transaction(function () use ($validated, $password) {
+            if ($password) {
+                $user = User::create([
+                    'name' => "{$validated['first_name']} {$validated['last_name']}",
+                    'email' => $validated['email'],
+                    'password' => $password,
+                    'phone' => $validated['phone'] ?? null,
+                    'role' => 'patient',
+                ]);
+                $validated['user_id'] = $user->id;
+            }
+
+            return Patient::create($validated);
+        });
 
         ActivityLogger::log('create', 'Patient', "Created patient: {$patient->full_name}", $request);
 

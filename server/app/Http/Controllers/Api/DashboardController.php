@@ -33,6 +33,10 @@ class DashboardController extends Controller
 
         foreach ($patients as $patient) {
             $age = $patient->age;
+            if ($age === null) {
+                continue;
+            }
+
             $gender = strtolower($patient->gender?->name ?? '');
             $key = $gender === 'male' ? 'male' : 'female';
 

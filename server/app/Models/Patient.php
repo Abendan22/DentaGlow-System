@@ -34,8 +34,12 @@ class Patient extends Model
         return "{$this->first_name} {$this->last_name}";
     }
 
-    public function getAgeAttribute(): int
+    public function getAgeAttribute(): ?int
     {
+        if (! $this->birth_date) {
+            return null;
+        }
+
         return (int) $this->birth_date->age;
     }
 

@@ -14,12 +14,14 @@ class Appointment extends Model
         'appointment_date',
         'time_slot',
         'status',
+        'approved_at',
         'notes',
         'created_by',
     ];
 
     protected $casts = [
         'appointment_date' => 'date',
+        'approved_at' => 'datetime',
     ];
 
     public function patient(): BelongsTo
