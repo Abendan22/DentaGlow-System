@@ -85,23 +85,11 @@ class SmsService
 
     public static function sendAppointmentApproved(Appointment $appointment): bool
     {
-        $appointment->loadMissing(['patient', 'doctor', 'service']);
-
-        $phone = $appointment->patient?->phone;
-        if (! $phone) {
+        $ctx = self::appointmentContext($appointment);
+        if (! $ctx) {
             return false;
         }
 
-        $patientName = trim(($appointment->patient->full_name ?: trim(
-            ($appointment->patient->first_name ?? '').' '.($appointment->patient->last_name ?? '')
-        )));
-        if ($patientName === '') {
-            $patientName = 'Patient';
-        }
-        $doctor = $appointment->doctor?->full_name ?? 'Assigned dentist';
-        $service = $appointment->service?->name ?? 'Dental service';
-        $date = Carbon::parse($appointment->appointment_date)->format('F j, Y');
-        $time = Carbon::createFromFormat('H:i', $appointment->time_slot)->format('g:i A');
         $queue = $appointment->getAttribute('queue_position');
         $wait = (int) ($appointment->getAttribute('estimated_wait_minutes') ?? 0);
 
@@ -114,17 +102,17 @@ class SmsService
         }
 
         $message = implode("\n", [
+            'DentaGlow - Municipal Dental Clinic',
             'Municipality of Tapaz, Capiz',
-            'Municipal Dental Clinic',
             '',
-            "Dear {$patientName},",
+            "Dear {$ctx['patient_name']},",
             '',
             'Your dental appointment has been APPROVED.',
             '',
-            "Service: {$service}",
-            "Doctor: {$doctor}",
-            "Date: {$date}",
-            "Time: {$time}",
+            "Service: {$ctx['service']}",
+            "Doctor: {$ctx['doctor']}",
+            "Date: {$ctx['date']}",
+            "Time: {$ctx['time']}",
             $queueLine,
             '',
             'Please arrive on time. Bring a valid ID if needed.',
@@ -133,7 +121,105 @@ class SmsService
             '— Tapaz LGU Municipal Health Office',
         ]);
 
-        return self::send($phone, $message);
+        return self::send($ctx['phone'], $message);
+    }
+
+    public static function sendAppointmentRejected(Appointment $appointment): bool
+    {
+        $ctx = self::appointmentContext($appointment);
+        if (! $ctx) {
+            return false;
+        }
+
+        $message = implode("\n", [
+            'DentaGlow - Municipal Dental Clinic',
+            'Municipality of Tapaz, Capiz',
+            '',
+            "Dear {$ctx['patient_name']},",
+            '',
+            'Your dental appointment request has been REJECTED.',
+            '',
+            "Service: {$ctx['service']}",
+            "Doctor: {$ctx['doctor']}",
+            "Date: {$ctx['date']}",
+            "Time: {$ctx['time']}",
+            '',
+            'Please book another date/time or contact the clinic for assistance.',
+            '',
+            'Thank you.',
+            '— Tapaz LGU Municipal Health Office',
+        ]);
+
+        return self::send($ctx['phone'], $message);
+    }
+
+    public static function sendAppointmentCancelled(Appointment $appointment, string $cancelledBy = 'clinic'): bool
+    {
+        $ctx = self::appointmentContext($appointment);
+        if (! $ctx) {
+            return false;
+        }
+
+        $who = $cancelledBy === 'patient'
+            ? 'You have cancelled your dental appointment.'
+            : 'Your dental appointment has been CANCELLED by the clinic.';
+
+        $message = implode("\n", [
+            'DentaGlow - Municipal Dental Clinic',
+            'Municipality of Tapaz, Capiz',
+            '',
+            "Dear {$ctx['patient_name']},",
+            '',
+            $who,
+            '',
+            "Service: {$ctx['service']}",
+            "Doctor: {$ctx['doctor']}",
+            "Date: {$ctx['date']}",
+            "Time: {$ctx['time']}",
+            '',
+            'You may book a new appointment through the patient portal if needed.',
+            '',
+            'Thank you.',
+            '— Tapaz LGU Municipal Health Office',
+        ]);
+
+        return self::send($ctx['phone'], $message);
+    }
+
+    /**
+     * @return array{phone: string, patient_name: string, doctor: string, service: string, date: string, time: string}|null
+     */
+    private static function appointmentContext(Appointment $appointment): ?array
+    {
+        $appointment->loadMissing(['patient', 'doctor', 'service']);
+
+        $phone = $appointment->patient?->phone;
+        if (! $phone) {
+            return null;
+        }
+
+        $patientName = trim(($appointment->patient->full_name ?: trim(
+            ($appointment->patient->first_name ?? '').' '.($appointment->patient->last_name ?? '')
+        )));
+        if ($patientName === '') {
+            $patientName = 'Patient';
+        }
+
+        $timeSlot = $appointment->time_slot;
+        try {
+            $time = Carbon::createFromFormat('H:i', substr((string) $timeSlot, 0, 5))->format('g:i A');
+        } catch (\Throwable) {
+            $time = (string) $timeSlot;
+        }
+
+        return [
+            'phone' => $phone,
+            'patient_name' => $patientName,
+            'doctor' => $appointment->doctor?->full_name ?? 'Assigned dentist',
+            'service' => $appointment->service?->name ?? 'Dental service',
+            'date' => Carbon::parse($appointment->appointment_date)->format('F j, Y'),
+            'time' => $time,
+        ];
     }
 
     /** PhilSMS expects 63XXXXXXXXXX format. */

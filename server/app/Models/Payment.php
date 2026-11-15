@@ -22,6 +22,14 @@ class Payment extends Model
         'paid_at' => 'datetime',
     ];
 
+    public static function generateOrNumber(): string
+    {
+        $prefix = 'OR-'.now()->format('Ymd');
+        $count = static::whereDate('paid_at', today())->count() + 1;
+
+        return $prefix.'-'.str_pad((string) $count, 4, '0', STR_PAD_LEFT);
+    }
+
     public function paymentOrder(): BelongsTo
     {
         return $this->belongsTo(PaymentOrder::class);

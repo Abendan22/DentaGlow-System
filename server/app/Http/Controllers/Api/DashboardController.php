@@ -16,14 +16,26 @@ class DashboardController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $date = $request->query('date', now()->toDateString());
+        $hasDate = $request->filled('date');
+        $date = $hasDate ? $request->query('date') : null;
 
-        $appointmentsQuery = Appointment::active();
-        if ($request->filled('date')) {
-            $appointmentsQuery->where('appointment_date', $date);
+        $appointmentsQuery = Appointment::query()->active();
+        if ($hasDate) {
+            $appointmentsQuery->whereDate('appointment_date', $date);
         }
 
-        $patients = Patient::with('gender')->get();
+        $appointmentCount = (clone $appointmentsQuery)->count();
+
+        $recentAppointments = (clone $appointmentsQuery)
+            ->with(['patient', 'doctor', 'service'])
+            ->orderByDesc('appointment_date')
+            ->orderBy('time_slot')
+            ->limit(10)
+            ->get();
+
+        // Age groups from patients who had appointments (on selected date, or all-time)
+        $patientIds = (clone $appointmentsQuery)->distinct()->pluck('patient_id');
+        $patients = Patient::with('gender')->whereIn('id', $patientIds)->get();
 
         $ageGroups = [
             '0-25' => ['male' => 0, 'female' => 0],
@@ -49,27 +61,30 @@ class DashboardController extends Controller
             }
         }
 
+        $collectionsQuery = Payment::query();
+        if ($hasDate) {
+            $collectionsQuery->whereDate('paid_at', $date);
+        } else {
+            $collectionsQuery->whereDate('paid_at', today());
+        }
+
         return response()->json([
+            'filter_date' => $date,
             'stats' => [
                 'total_clinics' => 1,
                 'total_services' => Service::where('is_active', true)->count(),
-                'total_appointments' => Appointment::active()->count(),
+                'total_appointments' => $appointmentCount,
                 'total_doctors' => DentalDoctor::where('is_active', true)->count(),
                 'total_patients' => Patient::count(),
                 'pending_payments' => PaymentOrder::pending()->count(),
                 'pending_amount' => PaymentOrder::pending()->sum('total_amount'),
-                'collections_today' => Payment::whereDate('paid_at', today())->sum('amount_paid'),
+                'collections_today' => (clone $collectionsQuery)->sum('amount_paid'),
                 'collections_month' => Payment::whereMonth('paid_at', now()->month)
                     ->whereYear('paid_at', now()->year)
                     ->sum('amount_paid'),
             ],
             'age_groups' => $ageGroups,
-            'recent_appointments' => Appointment::with(['patient', 'doctor', 'service'])
-                ->active()
-                ->orderByDesc('appointment_date')
-                ->orderBy('time_slot')
-                ->limit(5)
-                ->get(),
+            'recent_appointments' => $recentAppointments,
         ]);
     }
 }

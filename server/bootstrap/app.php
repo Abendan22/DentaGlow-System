@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'clinic' => \App\Http\Middleware\EnsureClinicAccess::class,
+            'clinic.staff' => \App\Http\Middleware\EnsureClinicStaff::class,
             'treasurer' => \App\Http\Middleware\EnsureTreasurerAccess::class,
         ]);
 

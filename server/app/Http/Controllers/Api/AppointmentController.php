@@ -181,11 +181,24 @@ class AppointmentController extends Controller
 
     public function destroy(Request $request, Appointment $appointment): JsonResponse
     {
+        $appointment->load(['patient', 'doctor', 'service']);
         $appointment->update(['status' => 'cancelled']);
 
-        ActivityLogger::log('cancel', 'Appointment', "Cancelled appointment #{$appointment->id}", $request);
+        $smsSent = SmsService::sendAppointmentCancelled($appointment, 'clinic');
 
-        return response()->json(['message' => 'Appointment cancelled.']);
+        ActivityLogger::log(
+            'cancel',
+            'Appointment',
+            "Cancelled appointment #{$appointment->id}".($smsSent ? ' (SMS sent)' : ' (SMS not sent)'),
+            $request
+        );
+
+        return response()->json([
+            'message' => $smsSent
+                ? 'Appointment cancelled. SMS notification sent to the patient.'
+                : 'Appointment cancelled.'.(SmsService::enabled() ? ' SMS could not be sent (check number / credits).' : ' SMS is disabled.'),
+            'sms_sent' => $smsSent,
+        ]);
     }
 
     public function approve(Request $request, Appointment $appointment): JsonResponse
@@ -221,6 +234,28 @@ class AppointmentController extends Controller
         ]);
     }
 
+    public function complete(Request $request, Appointment $appointment): JsonResponse
+    {
+        if ($appointment->status !== 'confirmed') {
+            return response()->json(['message' => 'Only confirmed appointments can be marked as completed.'], 422);
+        }
+
+        $appointment->update(['status' => 'completed']);
+        $appointment->load(['patient.gender', 'doctor', 'service']);
+
+        ActivityLogger::log(
+            'complete',
+            'Appointment',
+            "Completed appointment #{$appointment->id} for {$appointment->patient->full_name}",
+            $request
+        );
+
+        return response()->json([
+            'message' => 'Appointment marked as completed.',
+            'appointment' => $appointment,
+        ]);
+    }
+
     public function reject(Request $request, Appointment $appointment): JsonResponse
     {
         if ($appointment->status !== 'pending') {
@@ -228,13 +263,23 @@ class AppointmentController extends Controller
         }
 
         $appointment->update(['status' => 'rejected']);
+        $appointment->load(['patient.gender', 'doctor', 'service']);
 
-        $appointment->load('patient');
-        ActivityLogger::log('reject', 'Appointment', "Rejected appointment #{$appointment->id} for {$appointment->patient->full_name}", $request);
+        $smsSent = SmsService::sendAppointmentRejected($appointment);
+
+        ActivityLogger::log(
+            'reject',
+            'Appointment',
+            "Rejected appointment #{$appointment->id} for {$appointment->patient->full_name}".($smsSent ? ' (SMS sent)' : ' (SMS not sent)'),
+            $request
+        );
 
         return response()->json([
-            'message' => 'Appointment rejected.',
-            'appointment' => $appointment->load(['patient.gender', 'doctor', 'service']),
+            'message' => $smsSent
+                ? 'Appointment rejected. SMS notification sent to the patient.'
+                : 'Appointment rejected.'.(SmsService::enabled() ? ' SMS could not be sent (check number / credits).' : ' SMS is disabled.'),
+            'sms_sent' => $smsSent,
+            'appointment' => $appointment,
         ]);
     }
 
@@ -250,11 +295,24 @@ class AppointmentController extends Controller
             return response()->json(['message' => 'This appointment cannot be cancelled.'], 422);
         }
 
+        $appointment->load(['patient', 'doctor', 'service']);
         $appointment->update(['status' => 'cancelled']);
 
-        ActivityLogger::log('cancel', 'Appointment', "Patient cancelled appointment #{$appointment->id}", $request);
+        $smsSent = SmsService::sendAppointmentCancelled($appointment, 'patient');
 
-        return response()->json(['message' => 'Appointment cancelled.']);
+        ActivityLogger::log(
+            'cancel',
+            'Appointment',
+            "Patient cancelled appointment #{$appointment->id}".($smsSent ? ' (SMS sent)' : ' (SMS not sent)'),
+            $request
+        );
+
+        return response()->json([
+            'message' => $smsSent
+                ? 'Appointment cancelled. Confirmation SMS sent.'
+                : 'Appointment cancelled.',
+            'sms_sent' => $smsSent,
+        ]);
     }
 
     private function appendWaitingInfo(Appointment $appointment): Appointment

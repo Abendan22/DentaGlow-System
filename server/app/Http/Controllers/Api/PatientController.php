@@ -16,7 +16,17 @@ class PatientController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Patient::with('gender')->orderBy('last_name');
+        $with = ['gender'];
+
+        if ($request->boolean('with_appointments')) {
+            $with['appointments'] = function ($query) {
+                $query->with(['doctor', 'service'])
+                    ->orderByDesc('appointment_date')
+                    ->orderByDesc('time_slot');
+            };
+        }
+
+        $query = Patient::with($with)->orderBy('last_name');
 
         if ($search = $request->query('search')) {
             $query->where(function ($q) use ($search) {
@@ -33,6 +43,20 @@ class PatientController extends Controller
         }
 
         return response()->json($query->get());
+    }
+
+    public function show(Patient $patient): JsonResponse
+    {
+        $patient->load([
+            'gender',
+            'appointments' => function ($query) {
+                $query->with(['doctor', 'service'])
+                    ->orderByDesc('appointment_date')
+                    ->orderByDesc('time_slot');
+            },
+        ]);
+
+        return response()->json($patient);
     }
 
     public function store(Request $request): JsonResponse
