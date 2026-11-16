@@ -51,7 +51,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                 />
               </div>
             <div>
-              <div className="font-bold text-slate-800">DentaFlow</div>
+              <div className="font-bold text-slate-800">DentaGlow</div>
               <div className="text-xs text-blue-500">Patient Portal</div>
             </div>
           </div>

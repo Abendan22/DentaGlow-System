@@ -8,7 +8,6 @@ import { formatCurrency, formatDate, formatTime, localDateString } from "@/lib/u
 import {
   Activity,
   Banknote,
-  Building2,
   Calendar,
   PhilippinePeso,
   Stethoscope,
@@ -69,12 +68,6 @@ export default function DashboardPage() {
     : "Total Appointments";
 
   const stats = [
-    {
-      label: "Total Number of Clinics",
-      value: data?.stats.total_clinics ?? 0,
-      icon: Building2,
-      color: "#2563eb",
-    },
     {
       label: "Total Active Services",
       value: data?.stats.total_services ?? 0,

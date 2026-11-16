@@ -11,7 +11,7 @@ class TreasurerSeeder extends Seeder
     public function run(): void
     {
         User::firstOrCreate(
-            ['email' => 'treasurer@dentaflow.com'],
+            ['email' => 'treasurer@dentaglow.com'],
             [
                 'name' => 'Municipal Treasurer',
                 'password' => 'password',

@@ -71,7 +71,6 @@ class DashboardController extends Controller
         return response()->json([
             'filter_date' => $date,
             'stats' => [
-                'total_clinics' => 1,
                 'total_services' => Service::where('is_active', true)->count(),
                 'total_appointments' => $appointmentCount,
                 'total_doctors' => DentalDoctor::where('is_active', true)->count(),

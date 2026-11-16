@@ -22,7 +22,7 @@ class DoctorController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('specialization', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -34,7 +34,6 @@ class DoctorController extends Controller
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
-            'specialization' => ['required', 'string', 'max:150'],
             'phone' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email'],
             'is_active' => ['boolean'],
@@ -52,7 +51,6 @@ class DoctorController extends Controller
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
-            'specialization' => ['required', 'string', 'max:150'],
             'phone' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email'],
             'is_active' => ['boolean'],

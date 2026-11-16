@@ -154,7 +154,7 @@ export default function RegisterPage() {
               <img src="/tapazlogo.png" alt="Tapaz Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <div className="font-bold text-slate-800">DentaFlow</div>
+              <div className="font-bold text-slate-800">DentaGlow</div>
               <div className="text-xs text-blue-500">Create Account</div>
             </div>
           </div>

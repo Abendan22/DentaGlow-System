@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             'name' => 'System Admin',
-            'email' => 'admin@dentaflow.com',
+            'email' => 'admin@dentaglow.com',
             'password' => 'password',
             'role' => 'admin',
             'phone' => '09171234567',
@@ -34,17 +34,17 @@ class DatabaseSeeder extends Seeder
         ])->map(fn ($s) => Service::create($s));
 
         $doctors = collect([
-            ['first_name' => 'Maria', 'last_name' => 'Santos', 'specialization' => 'General Dentistry', 'email' => 'maria@dentaflow.com'],
-            ['first_name' => 'Juan', 'last_name' => 'Reyes', 'specialization' => 'Orthodontics', 'email' => 'juan@dentaflow.com'],
-            ['first_name' => 'Ana', 'last_name' => 'Cruz', 'specialization' => 'Pediatric Dentistry', 'email' => 'ana@dentaflow.com'],
+            ['first_name' => 'Maria', 'last_name' => 'Santos', 'email' => 'maria@dentaglow.com'],
+            ['first_name' => 'Juan', 'last_name' => 'Reyes', 'email' => 'juan@dentaglow.com'],
+            ['first_name' => 'Ana', 'last_name' => 'Cruz', 'email' => 'ana@dentaglow.com'],
         ])->map(fn ($d) => DentalDoctor::create($d));
 
-        Staff::create(['first_name' => 'Lisa', 'last_name' => 'Garcia', 'position' => 'Receptionist', 'email' => 'lisa@dentaflow.com']);
-        Staff::create(['first_name' => 'Mark', 'last_name' => 'Torres', 'position' => 'Dental Assistant', 'email' => 'mark@dentaflow.com']);
+        Staff::create(['first_name' => 'Lisa', 'last_name' => 'Garcia', 'position' => 'Receptionist', 'email' => 'lisa@dentaglow.com']);
+        Staff::create(['first_name' => 'Mark', 'last_name' => 'Torres', 'position' => 'Dental Assistant', 'email' => 'mark@dentaglow.com']);
 
         User::create([
             'name' => 'Municipal Treasurer',
-            'email' => 'treasurer@dentaflow.com',
+            'email' => 'treasurer@dentaglow.com',
             'password' => 'password',
             'role' => 'treasurer',
             'phone' => '09181234567',

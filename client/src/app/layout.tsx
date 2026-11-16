@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DentaFlow - Clinic Management System",
+  title: "DentaGlow - Clinic Management System",
   description: "Dental clinic appointment and management platform",
 };
 

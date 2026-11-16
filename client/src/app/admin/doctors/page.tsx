@@ -35,7 +35,6 @@ export default function DoctorsPage() {
       fields={[
         { name: "first_name", label: "First Name", required: true },
         { name: "last_name", label: "Last Name", required: true },
-        { name: "specialization", label: "Specialization", required: true },
         { name: "phone", label: "Phone" },
         { name: "email", label: "Email", type: "email" },
         { name: "is_active", label: "Active", type: "checkbox" },
@@ -47,14 +46,12 @@ export default function DoctorsPage() {
       getInitialValues={(d) => ({
         first_name: d.first_name,
         last_name: d.last_name,
-        specialization: d.specialization,
         phone: d.phone ?? "",
         email: d.email ?? "",
         is_active: d.is_active,
       })}
       columns={[
         { header: "Name", render: (d) => d.full_name },
-        { header: "Specialization", render: (d) => d.specialization },
         { header: "Phone", render: (d) => d.phone ?? "—" },
         { header: "Email", render: (d) => d.email ?? "—" },
         {

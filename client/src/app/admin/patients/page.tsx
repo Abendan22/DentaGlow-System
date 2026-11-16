@@ -401,11 +401,6 @@ export default function PatientsPage() {
                           <p className="text-sm font-semibold text-slate-800">
                             {a.doctor?.full_name ?? "Unknown doctor"}
                           </p>
-                          {a.doctor?.specialization && (
-                            <p className="text-xs text-slate-500">
-                              {a.doctor.specialization}
-                            </p>
-                          )}
                         </div>
                         <StatusBadge status={a.status} />
                       </div>

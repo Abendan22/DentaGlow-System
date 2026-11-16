@@ -35,7 +35,6 @@ export interface DentalDoctor {
   id: number;
   first_name: string;
   last_name: string;
-  specialization: string;
   phone?: string;
   email?: string;
   is_active: boolean;
@@ -94,7 +93,6 @@ export interface ActivityLog {
 export interface DashboardData {
   filter_date?: string | null;
   stats: {
-    total_clinics: number;
     total_services: number;
     total_appointments: number;
     total_doctors: number;

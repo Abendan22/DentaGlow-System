@@ -4,7 +4,6 @@ import {
   BarChart3,
   Calendar,
   ClipboardList,
-  Heart,
   LayoutDashboard,
   Package,
   Receipt,
@@ -23,7 +22,6 @@ export type NavItem = {
 
 const coreAdmin: NavItem[] = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/gender", label: "Gender", icon: Heart },
   { href: "/admin/patients", label: "Patient Record", icon: Users },
   { href: "/admin/users", label: "User Management", icon: UserCog },
   { href: "/admin/doctors", label: "Dental Doctor", icon: Stethoscope },
